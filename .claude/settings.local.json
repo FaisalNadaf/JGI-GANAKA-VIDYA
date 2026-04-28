@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nslookup -type=SRV _mongodb._tcp.cluster0.uedtskm.mongodb.net 8.8.8.8)",
+      "Bash(nslookup -type=SRV _mongodb._tcp.cluster0.uedtskm.mongodb.net)",
+      "Bash(ping -n 2 8.8.8.8)",
+      "Bash(nslookup -type=TXT cluster0.uedtskm.mongodb.net 8.8.8.8)",
+      "Bash(npm run *)"
+    ]
+  }
+}
