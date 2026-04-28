@@ -1,0 +1,16 @@
+[build]
+  base    = "frontend"
+  command = "npm ci && npm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION  = "20"
+  # Public API URL baked into the production bundle. Override per-deploy in
+  # Netlify UI (Site settings → Environment) if you point at a staging API.
+  VITE_API_BASE_URL = "https://jgi-ganaka-vidya.onrender.com/api"
+
+# SPA fallback — without this, deep links like /dashboard 404 on refresh.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

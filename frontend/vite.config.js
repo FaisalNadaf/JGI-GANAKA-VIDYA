@@ -1,18 +1,27 @@
 /** @format */
 
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
-	plugins: [react()],
-	server: {
-		port: 5173,
-		proxy: {
-			// forward /api to the Node backend during dev so we don't have to think about CORS
-			"/api": {
-				target: "https://jgi-ganaka-vidya.onrender.com",
-				changeOrigin: true,
+export default defineConfig(({ mode }) => {
+	const env = loadEnv(mode, process.cwd(), "");
+	const proxyTarget = env.VITE_DEV_API_PROXY || "http://localhost:5050";
+
+	return {
+		plugins: [react()],
+		server: {
+			port: 5173,
+			proxy: {
+				"/api": {
+					target: proxyTarget,
+					changeOrigin: true,
+					secure: false,
+				},
 			},
 		},
-	},
+		build: {
+			outDir: "dist",
+			sourcemap: false,
+		},
+	};
 });

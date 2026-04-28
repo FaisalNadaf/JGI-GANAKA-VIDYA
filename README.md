@@ -151,9 +151,48 @@ npm run build      # outputs dist/
 npm run preview    # serves dist/ on :4173 for testing
 ```
 
-For production, set `VITE_API_BASE_URL=https://your-api-host/api` in a
-`.env.production` file before building, or serve the React build behind
-the same domain as the API and just keep `/api` as the base URL.
+For production, `VITE_API_BASE_URL` is set in `netlify.toml` and baked
+into the bundle at build time. Override per-deploy in the Netlify UI
+(Site settings → Environment) when pointing at a staging API.
+
+---
+
+## ☁️ Deployment
+
+### Backend → Render
+
+1. Push this repo to GitHub.
+2. In Render → **New → Blueprint** → pick the repo. The included
+   [`render.yaml`](render.yaml) provisions the API, sets `NODE_ENV=production`,
+   auto-generates a strong `JWT_SECRET`, and wires the health check to
+   `/api/health`.
+3. Set the **`MONGO_URI`** secret in the Render dashboard (it's marked
+   `sync: false` so it isn't committed).
+4. If your machine's DNS resolver can't do MongoDB SRV lookups, use the
+   non-SRV multi-host URI form (Atlas → Connect → Drivers → Node.js
+   2.2.12+).
+5. After the first deploy, copy the public URL (e.g.
+   `https://jgi-ganaka-vidya.onrender.com`) into `frontend/netlify.toml`
+   under `VITE_API_BASE_URL` if it differs from the default.
+
+### Frontend → Netlify
+
+1. In Netlify → **Add new site → Import from Git** → pick the repo.
+2. The committed [`frontend/netlify.toml`](frontend/netlify.toml) handles
+   everything: build base, command, publish dir, Node 20, the
+   `VITE_API_BASE_URL`, and the SPA fallback redirect.
+3. After deploy, copy the Netlify URL (e.g.
+   `https://team-16-nova-creator.netlify.app`) and add it to the backend's
+   **`CORS_ORIGIN`** env var on Render. Multiple origins are supported as
+   a comma-separated list.
+
+### Production checklist
+
+- [ ] Backend `JWT_SECRET` is a long random string (server refuses to boot otherwise).
+- [ ] Backend `CORS_ORIGIN` lists every frontend origin you actually use, **without trailing slashes**.
+- [ ] Atlas → Network Access allows Render's egress IPs (or `0.0.0.0/0` for testing).
+- [ ] `npm run seed` has been run once against production Mongo to create admin accounts.
+- [ ] `/api/health` returns `{ ok: true }` from the public backend URL.
 
 ---
 
@@ -239,8 +278,11 @@ from this collection — no other coordination needed.
 | `401 Unauthorized` on every API call | Token expired — sign out and back in. |
 | Dashboard shows zeros | The `users` collection is empty. Run the **student app's** `seed.py` first. |
 | Portal seed says "admin exists, skipped" | That's fine — re-running seed is non-destructive. To force a reset, drop the `institute_admins` / `workshops` / `schools` collections in Mongo and re-run. |
-| `EADDRINUSE :5050` | Change `PORT` in `.env` and update Vite proxy in `vite.config.js`. |
+| `EADDRINUSE :5050` | Change `PORT` in `.env` and set `VITE_DEV_API_PROXY` in `frontend/.env` to match. |
 | Frontend can't reach API | Make sure backend is running on port 5050 (or whatever you set), and that the Vite dev server proxy points there. |
+| `querySrv ECONNREFUSED` on `mongodb+srv://` | Your machine's DNS can't resolve SRV records (common with corporate DNS / VPNs / some AVs). Use the direct multi-host `mongodb://...` URI from Atlas → Connect → Drivers → Node.js 2.2.12+. |
+| CORS error in browser even though `CORS_ORIGIN` looks right | Trailing slashes are stripped server-side, but double-check there are no typos. Browsers send `Origin` without a path. Multiple origins go as a comma-separated list. |
+| Direct navigation to `/dashboard` returns 404 on Netlify | The SPA redirect rule in `frontend/netlify.toml` (or `frontend/public/_redirects`) is missing — both are in this repo, so verify your build base is `frontend/`. |
 
 ---
 

@@ -7,16 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-package-lock.json
-
+# Dependencies & build output
 node_modules
 dist
 dist-ssr
 *.local
+
+# Env files — keep .env.example tracked so deployers know what to set.
 .env
 .env.*
-*.env
-# Editor directories and files
+!.env.example
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea

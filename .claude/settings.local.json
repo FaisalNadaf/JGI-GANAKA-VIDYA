@@ -5,7 +5,8 @@
       "Bash(nslookup -type=SRV _mongodb._tcp.cluster0.uedtskm.mongodb.net)",
       "Bash(ping -n 2 8.8.8.8)",
       "Bash(nslookup -type=TXT cluster0.uedtskm.mongodb.net 8.8.8.8)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(timeout 8 node -e \"require\\('dotenv'\\).config\\(\\); process.env.NODE_ENV='production'; process.env.JWT_SECRET='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; require\\('./server.js'\\);\")"
     ]
   }
 }
